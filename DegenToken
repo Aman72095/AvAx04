@@ -20,6 +20,11 @@ contract DegenToken is ERC20, Ownable, ERC20Burnable {
     uint constant SILVER = 3;
     uint constant BRONZE = 4;
 
+    uint constant DIAMOND_PRICE = 100;
+    uint constant CROWN_PRICE = 200;
+    uint constant SILVER_PRICE = 300;
+    uint constant BRONZE_PRICE = 400;
+
     event ItemRedeemed(address indexed player, uint itemId, uint price);
     event TokensTransferred(address indexed from, address indexed to, uint amt);
     event TokensBurned(address indexed account, uint amt);
@@ -36,24 +41,27 @@ contract DegenToken is ERC20, Ownable, ERC20Burnable {
         emit TokensTransferred(msg.sender, _to, amt);
     }
 
-    function redeemItem(uint _itemId, uint _price) public {
-        require(_itemId >= DIAMOND && _itemId <= BRONZE, "Invalid item ID");
-        require(balanceOf(msg.sender) >= _price, "Insufficient balance");
-
+    function redeemItem(uint _itemId) public {
+        uint price;
         if (_itemId == DIAMOND) {
+            price = DIAMOND_PRICE;
             playerItems[msg.sender].diamond += 1;
         } else if (_itemId == CROWN) {
+            price = CROWN_PRICE;
             playerItems[msg.sender].crown += 1;
         } else if (_itemId == SILVER) {
+            price = SILVER_PRICE;
             playerItems[msg.sender].silver += 1;
         } else if (_itemId == BRONZE) {
+            price = BRONZE_PRICE;
             playerItems[msg.sender].bronze += 1;
         } else {
             revert("Invalid item ID");
         }
 
-        _burn(msg.sender, _price);
-        emit ItemRedeemed(msg.sender, _itemId, _price);
+        require(balanceOf(msg.sender) >= price, "Insufficient balance");
+        _burn(msg.sender, price);
+        emit ItemRedeemed(msg.sender, _itemId, price);
     }
 
     function burnTokens(uint amt) external {
@@ -82,37 +90,5 @@ contract DegenToken is ERC20, Ownable, ERC20Burnable {
 
     function listRedeemableItems() external pure returns (string memory) {
         return "1. Diamond = 100 DGN\n2. Crown = 200 DGN\n3. Silver = 300 DGN\n4. Bronze = 400 DGN\n";
-    }
-
-    function redeemTokens(uint256 choice) external {
-        uint256 amount;
-
-        if (choice == DIAMOND) {
-            amount = 100;
-        } else if (choice == CROWN) {
-            amount = 200;
-        } else if (choice == SILVER) {
-            amount = 300;
-        } else if (choice == BRONZE) {
-            amount = 400;
-        } else {
-            revert("Invalid choice");
-        }
-
-        require(balanceOf(msg.sender) >= amount, "Insufficient Tokens Present");
-
-        _burn(msg.sender, amount);
-
-        if (choice == DIAMOND) {
-            playerItems[msg.sender].diamond += 1;
-        } else if (choice == CROWN) {
-            playerItems[msg.sender].crown += 1;
-        } else if (choice == SILVER) {
-            playerItems[msg.sender].silver += 1;
-        } else if (choice == BRONZE) {
-            playerItems[msg.sender].bronze += 1;
-        }
-
-        emit ItemRedeemed(msg.sender, choice, amount);
     }
 }
